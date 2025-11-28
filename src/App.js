@@ -34,7 +34,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
 
-            {/* FIXED: Changed path from "/layout" to "/printit" to match Navbar */}
+            {/* PrintIt Studio Page */}
             <Route
               path="/printit"
               element={<LayoutSelection setGlobalLayout={setSelectedLayout} />}

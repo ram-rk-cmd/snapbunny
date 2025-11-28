@@ -6,10 +6,16 @@ const LayoutSelection = ({ setGlobalLayout }) => {
   const [selectedId, setSelectedId] = useState("layoutA");
 
   const layouts = [
-    { id: "layoutS", name: "Single", poses: 1, type: "single", count: 1 }, // New Single Layout
-    { id: "layoutC", name: "Layout C", poses: 2, type: "strip", count: 2 },
-    { id: "layoutB", name: "Layout B", poses: 3, type: "strip", count: 3 },
+    {
+      id: "layoutS",
+      name: "Single Polaroid",
+      poses: 1,
+      type: "single",
+      count: 1,
+    },
     { id: "layoutA", name: "Layout A", poses: 4, type: "strip", count: 4 },
+    { id: "layoutB", name: "Layout B", poses: 3, type: "strip", count: 3 },
+    { id: "layoutC", name: "Layout C", poses: 2, type: "strip", count: 2 },
     { id: "layoutD", name: "Layout D", poses: 6, type: "grid", count: 6 },
   ];
 
@@ -30,13 +36,12 @@ const LayoutSelection = ({ setGlobalLayout }) => {
             color: "#ff80ab",
           }}
         >
-          SnapBunny
+          PrintIt Studio
         </h1>
         <p style={{ color: "#666", fontSize: "1.1rem" }}>
           Select a layout to start snapping!
         </p>
       </div>
-
       <div className="layout-grid">
         {layouts.map((layout) => (
           <div
@@ -47,7 +52,6 @@ const LayoutSelection = ({ setGlobalLayout }) => {
             }`}
           >
             <div className="preview-container">
-              {/* Added logic for 'single-view' class */}
               <div
                 className={`mini-strip ${
                   layout.type === "grid"
@@ -77,34 +81,7 @@ const LayoutSelection = ({ setGlobalLayout }) => {
             </div>
           </div>
         ))}
-
-        {/* Coming Soon */}
-        <div
-          className="layout-card"
-          style={{ opacity: 0.6, cursor: "not-allowed", background: "#f5f5f5" }}
-        >
-          <div className="preview-container" style={{ background: "#ddd" }}>
-            <span style={{ fontSize: "2rem" }}>🔒</span>
-          </div>
-          <div className="card-info">
-            <h3
-              style={{ margin: "0 0 5px 0", fontSize: "1.1rem", color: "#888" }}
-            >
-              Custom
-            </h3>
-            <span
-              style={{
-                color: "#ff80ab",
-                fontWeight: "bold",
-                fontSize: "0.9rem",
-              }}
-            >
-              Coming Soon
-            </span>
-          </div>
-        </div>
       </div>
-
       <div style={{ marginTop: "40px" }}>
         <button
           className="btn-bunny"
@@ -117,5 +94,4 @@ const LayoutSelection = ({ setGlobalLayout }) => {
     </div>
   );
 };
-
 export default LayoutSelection;

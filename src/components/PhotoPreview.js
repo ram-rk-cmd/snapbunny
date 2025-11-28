@@ -7,112 +7,144 @@ import {
   RefreshCw,
   Palette,
   Smile,
-  Image as ImageIcon,
+  ImagePlus,
+  Trash2,
+  Sliders,
+  Type,
+  Copy,
 } from "lucide-react";
 
-/* --- FRAMES CONFIGURATION --- */
+/* --- HELPER: FRAME DRAWING (ANTI-STRETCH) --- */
 const drawFrame = (ctx, canvas, src) => {
   const frameImg = new Image();
   frameImg.src = src;
   frameImg.onload = () => {
-    ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+    const hRatio = canvas.width / frameImg.width;
+    const vRatio = canvas.height / frameImg.height;
+    const ratio = Math.max(hRatio, vRatio);
+    const centerShift_x = (canvas.width - frameImg.width * ratio) / 2;
+    const centerShift_y = (canvas.height - frameImg.height * ratio) / 2;
+
+    ctx.drawImage(
+      frameImg,
+      0,
+      0,
+      frameImg.width,
+      frameImg.height,
+      centerShift_x,
+      centerShift_y,
+      frameImg.width * ratio,
+      frameImg.height * ratio
+    );
   };
 };
 
+/* --- HELPER: SEEDED RANDOM --- */
+const seededRandom = (seed) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+/* --- FRAMES COLLECTION --- */
 const frames = {
   none: { draw: () => {} },
+
+  // Girly Pop (Border Emojis - Static)
   pastel: {
     draw: (ctx, x, y, width, height) => {
-      const drawSticker = (x, y, type) => {
-        switch (type) {
-          case "star":
-            ctx.fillStyle = "#FFD700";
-            ctx.beginPath();
-            ctx.arc(x, y, 12, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-          case "heart":
-            ctx.fillStyle = "#cc8084";
-            ctx.beginPath();
-            const heartSize = 22;
-            ctx.moveTo(x, y + heartSize / 4);
-            ctx.bezierCurveTo(
-              x,
-              y,
-              x - heartSize / 2,
-              y,
-              x - heartSize / 2,
-              y + heartSize / 4
-            );
-            ctx.bezierCurveTo(
-              x - heartSize / 2,
-              y + heartSize / 2,
-              x,
-              y + heartSize * 0.75,
-              x,
-              y + heartSize
-            );
-            ctx.bezierCurveTo(
-              x,
-              y + heartSize * 0.75,
-              x + heartSize / 2,
-              y + heartSize / 2,
-              x + heartSize / 2,
-              y + heartSize / 4
-            );
-            ctx.bezierCurveTo(x + heartSize / 2, y, x, y, x, y + heartSize / 4);
-            ctx.fill();
-            break;
-          case "bow":
-            ctx.fillStyle = "#f9cee7";
-            ctx.beginPath();
-            ctx.ellipse(x - 10, y, 10, 6, Math.PI / 4, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(x + 10, y, 10, 6, -Math.PI / 4, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.fillStyle = "#e68bbe";
-            ctx.beginPath();
-            ctx.arc(x, y, 4, 0, 2 * Math.PI);
-            ctx.fill();
-            break;
-          default:
-            break;
-        }
-      };
-
-      // Draw decorative stickers at corners relative to the photo area
-      drawSticker(x + 11, y + 5, "bow");
-      drawSticker(x - 18, y + 95, "heart");
-      drawSticker(x + width - 40, y + 10, "star");
-      drawSticker(x + width - 1, y + 50, "heart");
-      drawSticker(x + 20, y + height - 20, "star");
-      drawSticker(x + width - 25, y + height - 5, "bow");
+      ctx.font = "24px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const emojis = ["🎀", "🌸", "✨", "☁️", "💖", "🧸", "🍓"];
+      const spacing = 45;
+      for (let i = x; i <= x + width; i += spacing) {
+        ctx.fillText(
+          emojis[Math.floor(Math.random() * emojis.length)],
+          i,
+          y + 15
+        );
+        ctx.fillText(
+          emojis[Math.floor(Math.random() * emojis.length)],
+          i,
+          y + height - 15
+        );
+      }
+      for (let i = y; i <= y + height; i += spacing) {
+        ctx.fillText(
+          emojis[Math.floor(Math.random() * emojis.length)],
+          x + 15,
+          i
+        );
+        ctx.fillText(
+          emojis[Math.floor(Math.random() * emojis.length)],
+          x + width - 15,
+          i
+        );
+      }
     },
   },
+
+  // Random Scattered Emojis (Handled via Stickers now)
+  randomPop: {
+    draw: () => {},
+  },
+
+  // Cute Frame with Symbols
   cute: {
     draw: (ctx, x, y, width, height) => {
-      // Simple cute decorations
-      ctx.fillStyle = "#87CEEB";
-      ctx.beginPath();
-      ctx.arc(x + 20, y + 5, 14, 0, Math.PI * 2);
-      ctx.fill();
+      // Helper to draw hearts
+      const drawHeart = (hx, hy, size, color) => {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        const topCurveHeight = size * 0.3;
+        ctx.moveTo(hx, hy + topCurveHeight);
+        ctx.bezierCurveTo(
+          hx,
+          hy,
+          hx - size / 2,
+          hy,
+          hx - size / 2,
+          hy + topCurveHeight
+        );
+        ctx.bezierCurveTo(
+          hx - size / 2,
+          hy + (size + topCurveHeight) / 2,
+          hx,
+          hy + (size + topCurveHeight) / 2,
+          hx,
+          hy + size
+        );
+        ctx.bezierCurveTo(
+          hx,
+          hy + (size + topCurveHeight) / 2,
+          hx + size / 2,
+          hy + (size + topCurveHeight) / 2,
+          hx + size / 2,
+          hy + topCurveHeight
+        );
+        ctx.bezierCurveTo(hx + size / 2, hy, hx, hy, hx, hy + topCurveHeight);
+        ctx.fill();
+      };
 
+      drawHeart(x + 20, y + 20, 25, "#FF69B4");
+      drawHeart(x + width - 45, y + height - 45, 25, "#FF69B4");
       ctx.fillStyle = "#FFD700";
       ctx.beginPath();
-      ctx.arc(x + width - 20, y + 18, 15, 0, Math.PI * 2);
+      ctx.arc(x + width - 30, y + 30, 12, 0, Math.PI * 2);
       ctx.fill();
-
-      // Cloud
-      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.fillStyle = "#87CEEB";
       ctx.beginPath();
-      ctx.arc(x + width - 40, y + height - 20, 10, 0, Math.PI * 2);
-      ctx.arc(x + width - 30, y + height - 30, 12, 0, Math.PI * 2);
-      ctx.arc(x + width - 20, y + height - 20, 10, 0, Math.PI * 2);
+      ctx.arc(x + 40, y + height - 30, 15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + 55, y + height - 35, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + 25, y + height - 35, 12, 0, Math.PI * 2);
       ctx.fill();
     },
   },
-  // Image Overlay Frames (Assumes images are in /public)
+
   mofusandImage: {
     draw: (ctx, _, __, w, h) =>
       drawFrame(ctx, ctx.canvas, "/mofusand-frame.png"),
@@ -139,57 +171,226 @@ const frames = {
 
 const PhotoPreview = ({ capturedImages, selectedLayout }) => {
   const stripCanvasRef = useRef(null);
+  const stickerInputRef = useRef(null);
   const navigate = useNavigate();
+
+  // State
   const [stripColor, setStripColor] = useState("white");
   const [selectedFrame, setSelectedFrame] = useState("none");
+  const [userEmojis, setUserEmojis] = useState("🌸,✨,🎀,💖,🦋,🐻,🍭,☁️");
+  const [footerText, setFooterText] = useState("SnapBunny");
+  const [stickers, setStickers] = useState([]); // Array of sticker objects
+  const [selectedStickerId, setSelectedStickerId] = useState(null);
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
   const [isCreatingGif, setIsCreatingGif] = useState(false);
   const [gifBlob, setGifBlob] = useState(null);
 
+  // Drag State
+  const [dragState, setDragState] = useState({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+  });
+
   const layoutType = selectedLayout ? selectedLayout.type : "layoutA";
   const photoCount = selectedLayout ? selectedLayout.poses : 4;
 
-  // --- GIF GENERATION LOGIC ---
+  // --- STICKER HANDLERS ---
+  const handleStickerUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const newId = Date.now();
+          setStickers((prev) => [
+            ...prev,
+            {
+              id: newId,
+              type: "image",
+              content: img,
+              x: 50,
+              y: 50,
+              width: 100,
+              height: 100 * (img.height / img.width),
+            },
+          ]);
+          setSelectedStickerId(newId);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addRandomStickers = () => {
+    const emojis = userEmojis.split(",").filter((e) => e.trim() !== "");
+    if (emojis.length === 0) return;
+
+    // Use canvas dimensions or fallback
+    const canvas = stripCanvasRef.current;
+    const w = canvas ? canvas.width : 400;
+    const h = canvas ? canvas.height : 600;
+
+    const count = 5 + Math.floor(Math.random() * 4); // 5 to 8
+    const newStickers = [];
+
+    for (let i = 0; i < count; i++) {
+      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+      newStickers.push({
+        id: Date.now() + i,
+        type: "text",
+        content: emoji,
+        x: 40 + Math.random() * (w - 80),
+        y: 40 + Math.random() * (h - 80),
+        width: 40, // Base size for text
+        height: 40,
+      });
+    }
+    setStickers((prev) => [...prev, ...newStickers]);
+  };
+
+  const deleteSticker = () => {
+    if (selectedStickerId) {
+      setStickers((prev) => prev.filter((s) => s.id !== selectedStickerId));
+      setSelectedStickerId(null);
+    }
+  };
+
+  const duplicateSticker = () => {
+    if (selectedStickerId) {
+      const stickerToClone = stickers.find((s) => s.id === selectedStickerId);
+      if (stickerToClone) {
+        const newId = Date.now();
+        setStickers((prev) => [
+          ...prev,
+          {
+            ...stickerToClone,
+            id: newId,
+            x: stickerToClone.x + 20,
+            y: stickerToClone.y + 20,
+          },
+        ]);
+        setSelectedStickerId(newId);
+      }
+    }
+  };
+
+  const updateStickerSize = (newSize) => {
+    if (selectedStickerId) {
+      setStickers((prev) =>
+        prev.map((s) => {
+          if (s.id === selectedStickerId) {
+            if (s.type === "image") {
+              const ratio = s.height / s.width;
+              return { ...s, width: newSize, height: newSize * ratio };
+            } else {
+              // For text, width acts as fontSize
+              return { ...s, width: newSize, height: newSize };
+            }
+          }
+          return s;
+        })
+      );
+    }
+  };
+
+  // --- CANVAS INTERACTION (DRAG) ---
+  const handleMouseDown = (e) => {
+    const canvas = stripCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    // Check hit from top to bottom (reverse loop)
+    for (let i = stickers.length - 1; i >= 0; i--) {
+      const s = stickers[i];
+      // Let's standardise: x,y is Top-Left for hit detection
+      if (
+        clickX >= s.x &&
+        clickX <= s.x + s.width &&
+        clickY >= s.y &&
+        clickY <= s.y + s.height
+      ) {
+        setSelectedStickerId(s.id);
+        setDragState({
+          isDragging: true,
+          startX: clickX - s.x,
+          startY: clickY - s.y,
+        });
+        return;
+      }
+    }
+    setSelectedStickerId(null);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragState.isDragging || !selectedStickerId) return;
+    const canvas = stripCanvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+
+    setStickers((prev) =>
+      prev.map((s) => {
+        if (s.id === selectedStickerId) {
+          return {
+            ...s,
+            x: mouseX - dragState.startX,
+            y: mouseY - dragState.startY,
+          };
+        }
+        return s;
+      })
+    );
+  };
+
+  const handleMouseUp = () => {
+    setDragState({ ...dragState, isDragging: false });
+  };
+
+  // --- GIF LOGIC ---
   const createGIF = useCallback(async () => {
     if (capturedImages.length === 0 || isCreatingGif || gifBlob) return gifBlob;
     setIsCreatingGif(true);
-
     return new Promise((resolve, reject) => {
       try {
         const gif = new GIF({
           workers: 2,
           quality: 10,
-          width: 400,
-          height: 300,
+          width: 300,
+          height: 533,
           workerScript: "/gif.worker.js",
         });
-
         let imagesLoaded = 0;
         capturedImages.forEach((imageUrl) => {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement("canvas");
-            canvas.width = 400;
-            canvas.height = 300;
+            canvas.width = 300;
+            canvas.height = 533;
             const ctx = canvas.getContext("2d");
             ctx.fillStyle = stripColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Simple center crop for GIF
-            const ratio = Math.max(
-              canvas.width / img.width,
-              canvas.height / img.height
-            );
-            const x = (canvas.width - img.width * ratio) / 2;
-            const y = (canvas.height - img.height * ratio) / 2;
+            const hRatio = canvas.width / img.width;
+            const vRatio = canvas.height / img.height;
+            const ratio = Math.max(hRatio, vRatio);
+            const centerShift_x = (canvas.width - img.width * ratio) / 2;
+            const centerShift_y = (canvas.height - img.height * ratio) / 2;
             ctx.drawImage(
               img,
               0,
               0,
               img.width,
               img.height,
-              x,
-              y,
+              centerShift_x,
+              centerShift_y,
               img.width * ratio,
               img.height * ratio
             );
@@ -202,8 +403,10 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
                 canvas.width,
                 canvas.height
               );
-            gif.addFrame(canvas, { delay: 500, copy: true });
 
+            // Note: Stickers not drawn in GIF for simplicity (requires coordinate mapping)
+
+            gif.addFrame(canvas, { delay: 500, copy: true });
             imagesLoaded++;
             if (imagesLoaded === capturedImages.length) {
               gif.on("finished", (blob) => {
@@ -223,33 +426,26 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
     });
   }, [capturedImages, stripColor, selectedFrame, isCreatingGif, gifBlob]);
 
-  // --- CORE CANVAS DRAWING LOGIC ---
+  // --- RENDER LOGIC ---
   const generatePhotoStrip = useCallback(() => {
     const canvas = stripCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    const imgWidth = 400,
+      imgHeight = 300,
+      borderSize = 40,
+      photoSpacing = 20,
+      textHeight = 60;
 
-    // Config
-    const imgWidth = 400;
-    const imgHeight = 300;
-    const borderSize = 40;
-    const photoSpacing = 20;
-    const textHeight = 60;
-
-    // 1. Calculate Total Height/Width based on Layout
     let totalHeight;
-
     if (layoutType === "layoutS") {
-      // Single Photo (Polaroid Style) - Square Photo
       canvas.width = imgWidth + borderSize * 2;
-      totalHeight = imgWidth + borderSize * 2 + textHeight + 40; // Extra space at bottom for polaroid feel
+      totalHeight = imgWidth + borderSize * 2 + textHeight + 40;
     } else if (layoutType === "layoutD") {
-      // Grid (2 columns)
       totalHeight =
         imgHeight * 3 + photoSpacing * 2 + borderSize * 2 + textHeight;
       canvas.width = imgWidth * 2 + photoSpacing + borderSize * 2;
     } else {
-      // Strips (A, B, C)
       const rows = photoCount;
       totalHeight =
         imgHeight * rows +
@@ -258,14 +454,11 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
         textHeight;
       canvas.width = imgWidth + borderSize * 2;
     }
-
     canvas.height = totalHeight;
 
-    // 2. Fill Background
     ctx.fillStyle = stripColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 3. Draw Footer Text
     const drawText = () => {
       const now = new Date();
       ctx.fillStyle =
@@ -274,7 +467,7 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
           : "#5d4037";
       ctx.font = "bold 22px Quicksand";
       ctx.textAlign = "center";
-      ctx.fillText("SnapBunny", canvas.width / 2, totalHeight - 35);
+      ctx.fillText(footerText, canvas.width / 2, totalHeight - 35);
 
       ctx.font = "14px Quicksand";
       ctx.fillStyle =
@@ -284,8 +477,6 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
         canvas.width / 2,
         totalHeight - 15
       );
-
-      // Frame Overlay (if it's a full-image frame like Mofusand)
       if (
         [
           "mofusandImage",
@@ -299,28 +490,46 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
       ) {
         frames[selectedFrame].draw(ctx, 0, 0, canvas.width, canvas.height);
       }
+
+      // Draw Stickers (Image or Text)
+      stickers.forEach((s) => {
+        if (s.type === "image") {
+          ctx.drawImage(s.content, s.x, s.y, s.width, s.height);
+        } else {
+          // Text Sticker (Emoji)
+          ctx.font = `${s.width}px Arial`; // Use width as font-size proxy
+          ctx.textAlign = "left";
+          ctx.textBaseline = "top";
+          ctx.fillText(s.content, s.x, s.y);
+        }
+
+        // Selection Border
+        if (s.id === selectedStickerId) {
+          ctx.strokeStyle = "#ff80ab";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.strokeRect(s.x, s.y, s.width, s.height);
+          ctx.setLineDash([]);
+        }
+      });
     };
 
     if (capturedImages.length === 0) {
       drawText();
       return;
     }
-
     const imagesToUse = capturedImages.slice(0, photoCount);
     let imagesLoaded = 0;
-
     imagesToUse.forEach((image, index) => {
       const img = new Image();
       img.src = image;
       img.onload = () => {
         let x, y, w, h;
-
-        // 4. Determine Position on Canvas
         if (layoutType === "layoutS") {
           x = borderSize;
           y = borderSize;
           w = imgWidth;
-          h = imgWidth; // Square for single
+          h = imgWidth;
         } else if (layoutType === "layoutD") {
           const col = index % 2;
           const row = Math.floor(index / 2);
@@ -335,46 +544,39 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
           h = imgHeight;
         }
 
-        // 5. ANTI-STRETCH LOGIC (Crop to Center)
-        // We calculate source dimensions (sx, sy, sWidth, sHeight)
         const imgRatio = img.width / img.height;
         const targetRatio = w / h;
         let sx, sy, sWidth, sHeight;
-
         if (imgRatio > targetRatio) {
-          // Image is wider than target -> Crop sides
           sHeight = img.height;
           sWidth = img.height * targetRatio;
           sx = (img.width - sWidth) / 2;
           sy = 0;
         } else {
-          // Image is taller than target -> Crop top/bottom
           sWidth = img.width;
           sHeight = img.width / targetRatio;
           sx = 0;
           sy = (img.height - sHeight) / 2;
         }
 
-        // Draw the cropped image
         ctx.drawImage(img, sx, sy, sWidth, sHeight, x, y, w, h);
-
-        // Draw Sticker Overlays on top of specific photo
-        if (["pastel", "cute"].includes(selectedFrame)) {
+        if (["pastel", "cute"].includes(selectedFrame))
           frames[selectedFrame].draw(ctx, x, y, w, h);
-        }
-
-        imagesLoaded++;
-        if (imagesLoaded === imagesToUse.length) drawText();
-      };
-
-      img.onerror = () => {
         imagesLoaded++;
         if (imagesLoaded === imagesToUse.length) drawText();
       };
     });
-  }, [capturedImages, stripColor, selectedFrame, layoutType, photoCount]);
+  }, [
+    capturedImages,
+    stripColor,
+    selectedFrame,
+    layoutType,
+    photoCount,
+    stickers,
+    selectedStickerId,
+    footerText,
+  ]);
 
-  // Handle Rendering Trigger
   useEffect(() => {
     setTimeout(() => {
       generatePhotoStrip();
@@ -395,10 +597,20 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
     link.href = stripCanvasRef.current.toDataURL("image/jpeg", 0.9);
     link.click();
   };
-
+  const downloadGIF = async () => {
+    if (gifBlob) {
+      const link = document.createElement("a");
+      link.download = "SnapBunny.gif";
+      link.href = URL.createObjectURL(gifBlob);
+      link.click();
+    } else {
+      alert("GIF is generating...");
+    }
+  };
   const handleQRClick = () => {
-    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://snapbunny.app&color=ff80ab`;
-    setQrCodeUrl(qrApi);
+    setQrCodeUrl(
+      `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://snapbunny.vercel.app&color=ff80ab`
+    );
   };
 
   return (
@@ -413,7 +625,6 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
         justifyContent: "center",
       }}
     >
-      {/* Left: Preview */}
       <div
         style={{
           flex: "1 1 400px",
@@ -427,30 +638,28 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
         </h2>
         <canvas
           ref={stripCanvasRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           style={{
             maxWidth: "100%",
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
             borderRadius: "5px",
+            cursor: selectedStickerId ? "move" : "default",
           }}
         />
 
         {qrCodeUrl && (
           <div
             className="glass-panel"
-            style={{
-              marginTop: "20px",
-              textAlign: "center",
-              animation: "softFade 0.5s",
-            }}
+            style={{ marginTop: "20px", textAlign: "center" }}
           >
             <img src={qrCodeUrl} alt="QR" style={{ borderRadius: "10px" }} />
-            <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "5px" }}>
-              Scan to Share!
-            </p>
+            <p style={{ marginTop: "5px" }}>Scan to Share!</p>
             <button
               onClick={() => setQrCodeUrl(null)}
               className="btn-secondary"
-              style={{ marginTop: "10px" }}
             >
               Close
             </button>
@@ -458,12 +667,33 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
         )}
       </div>
 
-      {/* Right: Controls (Glass Panel) */}
       <div
         className="glass-panel"
         style={{ flex: "1 1 350px", minWidth: "300px" }}
       >
-        {/* Colors */}
+        {/* Custom Text Input */}
+        <div className="control-group" style={{ marginBottom: "20px" }}>
+          <div className="section-title">
+            <Type size={18} /> Footer Text
+          </div>
+          <input
+            type="text"
+            value={footerText}
+            onChange={(e) => setFooterText(e.target.value)}
+            maxLength={25}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #ddd",
+              fontSize: "1rem",
+              outline: "none",
+            }}
+            placeholder="Enter text..."
+          />
+        </div>
+
+        {/* Custom Frame Color */}
         <div className="control-group" style={{ marginBottom: "30px" }}>
           <div className="section-title">
             <Palette size={18} /> Frame Color
@@ -478,17 +708,14 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
               "#FFF2CC",
               "#dbcfff",
               "#800000",
-            ].map((color) => (
+            ].map((c) => (
               <div
-                key={color}
-                className={`color-swatch ${
-                  stripColor === color ? "active" : ""
-                }`}
-                style={{ backgroundColor: color }}
-                onClick={() => setStripColor(color)}
+                key={c}
+                className={`color-swatch ${stripColor === c ? "active" : ""}`}
+                style={{ backgroundColor: c }}
+                onClick={() => setStripColor(c)}
               />
             ))}
-            {/* Hidden Custom Picker */}
             <label
               className="color-swatch"
               style={{
@@ -497,7 +724,9 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                cursor: "pointer",
               }}
+              title="Custom Color"
             >
               <input
                 type="color"
@@ -513,21 +742,20 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
           </div>
         </div>
 
-        {/* Stickers */}
         <div className="control-group">
           <div className="section-title">
-            <Smile size={18} /> Stickers & Frames
+            <Smile size={18} /> Frames
           </div>
           <div className="sticker-grid">
             {[
-              { id: "none", label: "No Stickers" },
-              { id: "pastel", label: "Girlypop" },
+              { id: "none", label: "None" },
+              { id: "pastel", label: "Pastel" },
+              { id: "randomPop", label: "Random Emojis" },
               { id: "cute", label: "Cute" },
-              { id: "jellycatImage", label: "Jellycat" },
               { id: "mofusandImage", label: "Mofusand" },
               { id: "shinChanImage", label: "Shin Chan" },
               { id: "miffyImage", label: "Miffy" },
-              { id: "markImage", label: "Mark's Debut" },
+              { id: "jellycatImage", label: "Jellycat" },
             ].map((sticker) => (
               <button
                 key={sticker.id}
@@ -542,17 +770,132 @@ const PhotoPreview = ({ capturedImages, selectedLayout }) => {
           </div>
         </div>
 
-        {/* Actions */}
+        {selectedFrame === "randomPop" && (
+          <div
+            className="control-group"
+            style={{
+              marginTop: "15px",
+              background: "#fff",
+              padding: "10px",
+              borderRadius: "10px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "0.9rem",
+                fontWeight: "bold",
+                display: "block",
+                marginBottom: "5px",
+              }}
+            >
+              Choose Emojis:
+            </label>
+            <input
+              type="text"
+              value={userEmojis}
+              onChange={(e) => setUserEmojis(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "5px",
+                border: "1px solid #ddd",
+              }}
+            />
+            <button
+              className="btn-secondary"
+              style={{ width: "100%", marginTop: "10px" }}
+              onClick={addRandomStickers}
+            >
+              Scatter Emojis! ✨
+            </button>
+          </div>
+        )}
+
+        {/* Custom Sticker Upload */}
+        <div className="control-group" style={{ marginTop: "20px" }}>
+          <div className="section-title">
+            <ImagePlus size={18} /> Add Custom Stickers
+          </div>
+
+          {/* Sticker Controls Moved Here */}
+          {selectedStickerId && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                marginBottom: "15px",
+                background: "#fff0f5",
+                padding: "10px",
+                borderRadius: "15px",
+                border: "1px solid #ff80ab",
+              }}
+            >
+              <Sliders size={16} color="#666" />
+              <input
+                type="range"
+                min="20"
+                max="300"
+                value={
+                  stickers.find((s) => s.id === selectedStickerId)?.width || 100
+                }
+                onChange={(e) => updateStickerSize(parseInt(e.target.value))}
+                style={{ accentColor: "#ff80ab", cursor: "pointer", flex: 1 }}
+              />
+              <button
+                onClick={duplicateSticker}
+                className="btn-icon"
+                title="Duplicate"
+                style={{ color: "#555" }}
+              >
+                <Copy size={18} />
+              </button>
+              <button
+                onClick={deleteSticker}
+                className="btn-icon"
+                title="Delete"
+                style={{ color: "#ff4d4d" }}
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            <input
+              type="file"
+              ref={stickerInputRef}
+              onChange={handleStickerUpload}
+              accept="image/png, image/jpeg"
+              style={{ display: "none" }}
+            />
+            <button
+              className="btn-secondary"
+              style={{ width: "100%" }}
+              onClick={() => stickerInputRef.current.click()}
+            >
+              + Upload PNG / Photo
+            </button>
+          </div>
+        </div>
+
         <div className="action-bar">
           <button className="btn-bunny btn-icon" onClick={downloadPhotoStrip}>
             <Download size={18} /> Save
+          </button>
+          <button
+            className="btn-secondary btn-icon"
+            onClick={downloadGIF}
+            disabled={!gifBlob}
+          >
+            GIF
           </button>
           <button className="btn-secondary btn-icon" onClick={handleQRClick}>
             <Share2 size={18} /> QR
           </button>
           <button
             className="btn-secondary btn-icon"
-            onClick={() => navigate("/layout")}
+            onClick={() => navigate("/printit")}
           >
             <RefreshCw size={18} /> Retake
           </button>

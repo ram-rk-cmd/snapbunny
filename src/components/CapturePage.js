@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import Webcam from "react-webcam";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { Upload } from "lucide-react"; // Removed unused icons
+import { Upload } from "lucide-react";
 
 const FILTERS = [
   { name: "Normal", class: "filter-normal" },
@@ -17,14 +17,12 @@ const CapturePage = ({ layout, setGlobalImages }) => {
   const webcamRef = useRef(null);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-
   const [images, setImages] = useState([]);
   const [timerDuration, setTimerDuration] = useState(3);
   const [countdown, setCountdown] = useState(null);
   const [activeFilter, setActiveFilter] = useState("filter-normal");
   const [isCapturing, setIsCapturing] = useState(false);
 
-  // Popup on load
   useEffect(() => {
     Swal.fire({
       title: "Ready to Snap?",
@@ -39,7 +37,6 @@ const CapturePage = ({ layout, setGlobalImages }) => {
   const captureFrame = useCallback(() => {
     const imageSrc = webcamRef.current.getScreenshot();
     if (!imageSrc) return;
-
     const canvas = document.createElement("canvas");
     const img = new Image();
     img.src = imageSrc;
@@ -51,50 +48,38 @@ const CapturePage = ({ layout, setGlobalImages }) => {
         document.querySelector(`.${activeFilter}`)
       ).filter;
       ctx.filter = filterStyle !== "none" ? filterStyle : "none";
-
       ctx.drawImage(img, 0, 0);
-      const filteredDataUrl = canvas.toDataURL("image/jpeg");
-
-      setImages((prev) => [...prev, filteredDataUrl]);
+      setImages((prev) => [...prev, canvas.toDataURL("image/jpeg")]);
     };
   }, [activeFilter]);
 
   const startSequence = () => {
     setImages([]);
     setIsCapturing(true);
-
     let shotsTaken = 0;
-    const totalShots = layout.poses;
-
     const runShot = () => {
-      if (shotsTaken >= totalShots) {
+      if (shotsTaken >= layout.poses) {
         setIsCapturing(false);
         setCountdown(null);
         return;
       }
-
       let count = timerDuration;
       setCountdown(count);
-
       const interval = setInterval(() => {
         count--;
         setCountdown(count);
-
         if (count === 0) {
           clearInterval(interval);
           captureFrame();
           shotsTaken++;
-
-          if (shotsTaken < totalShots) {
-            setTimeout(runShot, 1000);
-          } else {
+          if (shotsTaken < layout.poses) setTimeout(runShot, 1000);
+          else {
             setIsCapturing(false);
             setCountdown(null);
           }
         }
       }, 1000);
     };
-
     runShot();
   };
 
@@ -143,7 +128,6 @@ const CapturePage = ({ layout, setGlobalImages }) => {
           onChange={handleUpload}
           accept="image/*"
         />
-
         <label style={{ fontWeight: "bold" }}>Timer: {timerDuration}s</label>
         <input
           type="range"
@@ -153,7 +137,6 @@ const CapturePage = ({ layout, setGlobalImages }) => {
           onChange={(e) => setTimerDuration(parseInt(e.target.value))}
         />
       </div>
-
       <div
         style={{
           position: "relative",
@@ -187,7 +170,6 @@ const CapturePage = ({ layout, setGlobalImages }) => {
           </div>
         )}
       </div>
-
       <div
         style={{
           display: "flex",
@@ -215,7 +197,6 @@ const CapturePage = ({ layout, setGlobalImages }) => {
           </button>
         ))}
       </div>
-
       <div
         style={{
           marginTop: "20px",
@@ -231,7 +212,6 @@ const CapturePage = ({ layout, setGlobalImages }) => {
         >
           {isCapturing ? "Snapping..." : "Start Capture"}
         </button>
-
         <div style={{ display: "flex", gap: "8px", marginTop: "15px" }}>
           {images.map((img, i) => (
             <img
@@ -252,5 +232,4 @@ const CapturePage = ({ layout, setGlobalImages }) => {
     </div>
   );
 };
-
 export default CapturePage;
